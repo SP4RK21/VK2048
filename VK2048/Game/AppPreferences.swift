@@ -18,7 +18,7 @@ enum App {
     static var clickAnimationDuration = 0.2
     static var moveAnimationDuration = 0.07
     static var boardRestartAnimationDuration = 0.2
-    static var addAnimationDuration = 0.15
+    static var addAnimationDuration = 0.22
     static var mergeScaleAnimationDuration = 0.1
     
     // MARK: Animations preferences

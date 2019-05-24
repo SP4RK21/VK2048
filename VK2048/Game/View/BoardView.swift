@@ -17,6 +17,8 @@ class BoardView: UIView {
     private var animationRunning = false
     private var animationsToRun = 0
     private var animationsFinished = 0
+    private var animationsSpeedUp = false
+    private var moveHappening = false
     
     private var dimension: Int {
         return App.boardDimension
@@ -34,6 +36,21 @@ class BoardView: UIView {
      - Parameter changesBlock: array of changes that need to be displayed on board
      */
     func putInDisplayQueue(changesBlock: [BoardChange]) {
+        if case BoardChange.restartByLoss = changesBlock[0] {
+            changesQueue.enqueue(changesBlock)
+            return
+        }
+        if animationsSpeedUp {
+            changesQueue.enqueue(changesBlock)
+            return
+        }
+        if changesQueue.count > 2 || moveHappening {
+            animationsSpeedUp = true
+            while !changesQueue.isEmpty {
+                displayChanges(changesQueue.dequeue())
+            }
+            animationsSpeedUp = false
+        }
         if changesQueue.isEmpty && !animationRunning {
             displayChanges(changesBlock)
         } else {
@@ -50,10 +67,10 @@ class BoardView: UIView {
                 switch $0 {
                     case let .add(tile): add(tile: tile)
                     case let .load(tile): addTileWithoutAnimation(tile)
-                    case let .merge(sourceTile, destinationTile): merge(tile: sourceTile, with: destinationTile)
-                    case let .move(sourceTile, destinationPosition): move(tile: sourceTile, to: destinationPosition)
+                    case let .merge(sourceTile, destinationTile): moveHappening = true; merge(tile: sourceTile, with: destinationTile)
+                    case let .move(sourceTile, destinationPosition):moveHappening = true; move(tile: sourceTile, to: destinationPosition)
                     case let .wrongMove(direction): wrongMove(direction)
-                    case .restart: restartBoard()
+                    case .restartByButtonClick, .restartByLoss: restartBoard()
                 }
             }
         }
@@ -120,21 +137,12 @@ class BoardView: UIView {
         boardWithTiles.append(tileToAdd)
         addSubview(tileToAdd)
         UIView.animate(
-            withDuration: App.addAnimationDuration,
+            withDuration: App.addAnimationDuration * 1.5,
             animations: {
-                tileToAdd.transform = App.scaleUpTransform
+                tileToAdd.transform = .identity
                 tileToAdd.alpha = 1.0
-            },
-            completion: { halfFinished in
-                UIView.animate(
-                    withDuration: App.addAnimationDuration / 2,
-                    animations: {
-                        tileToAdd.transform = .identity
-                    },
-                    completion: { finished in
-                        self.finishAnimation()
-                    }
-                )
+            }, completion: { finished in
+                self.finishAnimation()
             }
         )
     }
@@ -180,7 +188,6 @@ class BoardView: UIView {
                 sourceTileView.center = destinationTileView.center
             },
             completion: { finishedMove in
-                self.finishAnimation()
                 destinationTileView.removeFromSuperview()
                 UIView.animate(
                     withDuration: App.mergeScaleAnimationDuration,
@@ -196,6 +203,9 @@ class BoardView: UIView {
                             options: .curveEaseInOut,
                             animations: {
                                 sourceTileView.transform = .identity
+                            }, completion: { finished in
+                                self.finishAnimation()
+                                sourceTileView.frame = self.boardCellsRects[sourceTileView.position.row][sourceTileView.position.column]
                             }
                         )
                     }
@@ -207,10 +217,10 @@ class BoardView: UIView {
     private func wrongMove(_ direction: Direction) {
         var deltaMove: CGPoint
         switch direction {
-            case .up: deltaMove = CGPoint(x: 0, y: -App.wrongMoveDelta)
-            case .down: deltaMove = CGPoint(x: 0, y: App.wrongMoveDelta)
-            case .right: deltaMove = CGPoint(x: App.wrongMoveDelta, y: 0)
-            case .left: deltaMove = CGPoint(x: -App.wrongMoveDelta, y: 0)
+        case .up: deltaMove = CGPoint(x: 0, y: -App.wrongMoveDelta)
+        case .down: deltaMove = CGPoint(x: 0, y: App.wrongMoveDelta)
+        case .right: deltaMove = CGPoint(x: App.wrongMoveDelta, y: 0)
+        case .left: deltaMove = CGPoint(x: -App.wrongMoveDelta, y: 0)
         }
         if #available(iOS 10.0, *) {
             let generator = UINotificationFeedbackGenerator()
@@ -230,6 +240,7 @@ class BoardView: UIView {
                         },
                         completion: { finished in
                             self.finishAnimation()
+                            tileView.frame = self.boardCellsRects[tileView.position.row][tileView.position.column]
                         }
                     )
                 }
@@ -241,6 +252,7 @@ class BoardView: UIView {
         animationsFinished += 1
         if animationsFinished == animationsToRun {
             animationRunning = false
+            moveHappening = false
             displayChanges(changesQueue.dequeue())
         }
     }
@@ -256,5 +268,6 @@ enum BoardChange {
     case move(Tile, Position)
     case merge(Tile, Tile)
     case wrongMove(Direction)
-    case restart
+    case restartByLoss
+    case restartByButtonClick
 }

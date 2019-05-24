@@ -190,7 +190,7 @@ class Game2048 {
     
     private func checkIfGameOver() {
         if isGameOver {
-            boardChanges.append(.restart)
+            boardChanges.append(.restartByLoss)
             sendChangesToController()
             restartGame()
         }

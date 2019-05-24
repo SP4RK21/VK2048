@@ -89,7 +89,7 @@ class GameView: UIView {
                 sender.transform = CGAffineTransform.identity.scaledBy(x: App.buttonClickScaleRatio, y: App.buttonClickScaleRatio)
             },
             completion: { finished in
-                self.gameBoardView.putInDisplayQueue(changesBlock: [.restart])
+                self.gameBoardView.putInDisplayQueue(changesBlock: [.restartByButtonClick])
                 self.delegate?.shouldRestartGame()
                 UIView.animate(
                     withDuration: App.clickAnimationDuration / 2,

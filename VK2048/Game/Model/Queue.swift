@@ -22,6 +22,10 @@ public struct Queue<T> {
         array.append(element)
     }
     
+    mutating func clear() {
+        array.removeAll()
+    }
+    
     mutating func dequeue() -> T? {
         if isEmpty {
             return nil
