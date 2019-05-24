@@ -16,15 +16,15 @@ enum App {
     
     // MARK: Animations length
     static var clickAnimationDuration = 0.2
-    static var moveAnimationDuration = 0.07
+    static var moveAnimationDuration = 0.05
     static var boardRestartAnimationDuration = 0.2
-    static var addAnimationDuration = 0.22
+    static var addAnimationDuration = 0.1
     static var mergeScaleAnimationDuration = 0.1
     
     // MARK: Animations preferences
     static var wrongMoveDelta: CGFloat = SizeRatio.wrongMoveDeltaToTileSize * tileSize
-    static var scaleUpTransform = CGAffineTransform.init(scaleX: 1.1, y: 1.1)
-    static var scaleDownTransform = CGAffineTransform.init(scaleX: 0.1, y: 0.1)
+    static var scaleUpTransform = CGAffineTransform(scaleX: 1.1, y: 1.1)
+    static var scaleDownTransform = CGAffineTransform(scaleX: 0.1, y: 0.1)
     static var buttonClickScaleRatio: CGFloat = 0.9
     
     // MARK: Button preferences
